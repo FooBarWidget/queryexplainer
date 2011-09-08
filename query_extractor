@@ -3,7 +3,7 @@
 def contains_relevant_query?(line)
 	if line =~ /( SQL | Load | AREL | Save )/
 		query = extract_query(line)
-		return query != "BEGIN" && query != "COMMIT" && query != "ROLLBACK" && query !~ /^describe /i
+		return query =~ /^select /i
 	else
 		return false
 	end
