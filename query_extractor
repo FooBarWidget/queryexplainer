@@ -1,1 +1,20 @@
 #!/usr/bin/env ruby
+
+def contains_relevant_query?(line)
+end
+
+def extract_query(line)
+end
+
+File.open(ARGV[0], 'r') do |f|
+	while !f.eof?
+		begin
+			line = f.readline.strip
+			if contains_relevant_query?(line)
+				puts extract_query(line)
+			end
+		rescue EOFError
+			break
+		end
+	end
+end
