@@ -1,15 +1,25 @@
 #!/usr/bin/env ruby
 
 def contains_relevant_query?(line)
+	if line =~ /( SQL | Load | AREL | Save )/
+		query = extract_query(line)
+		return query != "BEGIN" && query != "COMMIT" && query != "ROLLBACK" && query !~ /^describe /i
+	else
+		return false
+	end
 end
 
 def extract_query(line)
+	query = line.sub(/.*?( SQL | Load | AREL | Save )\(.*?\)  /, '')
+	return query
 end
 
 File.open(ARGV[0], 'r') do |f|
 	while !f.eof?
 		begin
 			line = f.readline.strip
+			line.gsub!(/\e\[?.*?[\@-~]/, '')
+			next if line.empty?
 			if contains_relevant_query?(line)
 				puts extract_query(line)
 			end
