@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+begin
+	unique_sqls = {}
+	
+	while !STDIN.eof?
+		query = STDIN.readline.strip
+		next if query.empty?
+		
+		canonical_form = query.dup
+		canonical_form.gsub!(/([a-z0-9_]+) = \d+/i, '\1 = ?')
+		canonical_form.gsub!(/([a-z0-9_]+) != \d+/i, '\1 != ?')
+		canonical_form.gsub!(/([a-z0-9_]+) = '.*?'/i, '\1 = ?')
+		canonical_form.gsub!(/([a-z0-9_]+) != '.*?'/i, '\1 != ?')
+		
+		unique_sqls[canonical_forms] = query
+	end
+	
+	queries = unique_sqls.values
+	queries.sort!
+	queries.each do |query|
+		puts query
+	end
+	
+rescue EOFError
+	exit 0
+rescue Interrupt
+	exit 1
+end
