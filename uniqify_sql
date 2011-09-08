@@ -7,11 +7,19 @@ begin
 		next if query.empty?
 		
 		canonical_form = query.dup
-		canonical_form.gsub!(/([a-z0-9_]+) = \d+/i, '\1 = ?')
-		canonical_form.gsub!(/([a-z0-9_]+) != \d+/i, '\1 != ?')
-		canonical_form.gsub!(/([a-z0-9_]+) = '.*?'/i, '\1 = ?')
-		canonical_form.gsub!(/([a-z0-9_]+) != '.*?'/i, '\1 != ?')
-		canonical_form.gsub!(/([a-z0-9_]+) in \(.*?\)/i, '\1 in (?)')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *= *\d+/i, '\1 = ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *!= *\d+/i, '\1 != ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *< *\d+/i, '\1 < ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *> *\d+/i, '\1 > ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *<= *\d+/i, '\1 <= ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *>= *\d+/i, '\1 >= ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *= *'.*?'/i, '\1 = ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *!= *'.*?'/i, '\1 != ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *< *'.*?'/i, '\1 < ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *> *'.*?'/i, '\1 > ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *<= *'.*?'/i, '\1 <= ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) *>= *'.*?'/i, '\1 >= ?')
+		canonical_form.gsub!(/([a-z0-9_\`\.]+) +in +\(.*?\)/i, '\1 in (?)')
 		
 		unique_sqls[canonical_form] = query
 	end
