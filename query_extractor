@@ -1,30 +1,82 @@
 #!/usr/bin/env ruby
+require 'optparse'
 
-def contains_relevant_query?(line)
-	if line =~ /( SQL | Load | AREL | Save )/
-		query = extract_query(line)
-		return query =~ /^select /i
-	else
-		return false
+options = { :times => false, :queries => true, :select_only => false }
+parser = OptionParser.new do |opts|
+	nl = "\n" + ' ' * 37
+	opts.banner = "Usage: query_extractor [options] LOGFILE"
+	opts.separator ""
+	
+	opts.separator "Options:"
+	opts.on("--times",
+	        "Show times at which queries are executed.") do
+		options[:times] = true
+		options[:queries] = true
+	end
+	opts.on("--times-only",
+	        "Show only times at which queries are#{nl}" +
+	        "executed, but not the queries themselves.") do
+		options[:times] = true
+		options[:queries] = false
+	end
+	opts.on("--select-only",
+	        "Only process SELECT queries.") do
+		options[:select_only] = true
 	end
 end
-
-def extract_query(line)
-	query = line.sub(/.*?( SQL | Load | AREL | Save )\(.*?\)  /, '')
-	return query
+begin
+	parser.parse!
+rescue OptionParser::ParseError => e
+	STDERR.puts e
+	STDERR.puts
+	STDERR.puts "Please see '--help' for valid options."
+	exit 1
 end
 
-File.open(ARGV[0], 'r') do |f|
-	while !f.eof?
-		begin
-			line = f.readline.strip
-			line.gsub!(/\e\[?.*?[\@-~]/, '')
-			next if line.empty?
-			if contains_relevant_query?(line)
-				puts extract_query(line)
+if options[:times] && options[:queries]
+	def print_query(time, query)
+		puts "#{time}: #{query}"
+	end
+elsif options[:times]
+	def print_query(time, query)
+		puts time if time
+	end
+elsif options[:queries]
+	def print_query(time, query)
+		puts query
+	end
+else
+	abort "Bug: should be impossible to set time=false and queries=false"
+end
+
+if !ARGV[0] || ARGV[0] == '-'
+	f = STDIN
+else
+	f = File.open(ARGV[0], 'r')
+end
+
+options_times = options[:times]
+options_select_only = options[:select_only]
+while !f.eof?
+	begin
+		line = f.readline.strip
+		line.gsub!(/\e\[?.*?[\@-~]/, '')
+		next if line.empty?
+		if line =~ /(^| )(SQL |Load |AREL |Save )\((.*?)\) +(.+)$/
+			duration = $3
+			query    = $4
+			if options_times
+				if line =~ /^\[\d+ (.+?) .+?\]/
+					time = $1
+				else
+					time = nil
+				end
 			end
-		rescue EOFError
-			break
+			if !options_select_only || query =~ /^select /i
+				print_query(time, query)
+			end
 		end
+	rescue EOFError
+		break
 	end
 end

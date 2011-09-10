@@ -4,5 +4,4 @@
 
 Normal usage:
 
-    ./query_extractor production.log > queries.txt
-    tail -f queries.txt | ./query_explainer
+    ./query_extractor --select-only production.log | ./uniqify_sql | ./query_explainer
